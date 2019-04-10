@@ -2,6 +2,7 @@ import React from 'react';
 import {render, fireEvent, getByTestId} from 'react-testing-library';
 import renderer from 'react-test-renderer'; 
 import 'react-testing-library/cleanup-after-each';
+import 'jest-dom/extend-expect'
 
 
 import Dashboard from './Dashboard.js';
@@ -13,6 +14,12 @@ describe('<Dashboard />', () => {
     it('renders successfully', () => {
         render(<Dashboard />);
     })
+
+    it('matches snapshot', () => {
+        const tree = renderer.create(<Dashboard />).toJSON();
+    
+        expect(tree).toMatchSnapshot();
+      })
 
     describe('Gate', () => {
         it('renders unlocked on load', () => {
@@ -40,8 +47,31 @@ describe('<Display />', () => {
         const { getByText } = render(<Display locked={true} />);
         getByText(/locked/i);
     })
-})
 
+    it('has red-led class when locked or closed', () => {
+        const { getByText } = render(<Dashboard locked={true} />);
+        const closeButton = getByText(/close gate/i);
+        const lockButton = getByText(/lock gate/i);
+        fireEvent.click(closeButton);
+        fireEvent.click(lockButton);
+        
+        const lockDisplay = getByText(/locked/i);
+        const closedDisplay = getByText(/closed/i);
+
+        expect(lockDisplay).toHaveClass('red-led');
+        expect(closedDisplay).toHaveClass('red-led');
+    })
+    it('has green-led class when open or unlocked', () => {
+        const { getByText } = render(<Dashboard locked={true} />);
+
+        const unlockDisplay = getByText(/unlocked/i);
+        const openDisplay = getByText(/open/i);
+
+        expect(unlockDisplay).toHaveClass('green-led');
+        expect(openDisplay).toHaveClass('green-led');
+    })
+})
+ 
 describe('<Controls />', () => {
     it('renders successfully', () => {
         render(<Controls />);
